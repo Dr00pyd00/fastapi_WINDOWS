@@ -3,8 +3,19 @@ from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from app import models
+from app.database import engine
 
+# check si les tableaux existent , sinon les crees
+models.Base.metadata.create_all(bind=engine)
 
+# generateur pour acces a la DB:
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
     
 #===================================================================#
