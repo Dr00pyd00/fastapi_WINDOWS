@@ -1,23 +1,15 @@
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends
 from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from app import models
-from app.database import engine
+from app.database import engine, get_db
+from sqlalchemy.orm import Session
 
 # check si les tableaux existent , sinon les crees
 models.Base.metadata.create_all(bind=engine)
 
-# generateur pour acces a la DB:
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-    
 #===================================================================#
 #==========  Schema:
 
@@ -54,7 +46,14 @@ app = FastAPI()
 @app.get("/", status_code=status.HTTP_200_OK)
 async def root():
     return {"message":"Welcome to my API!"}
+
+# test de get_db
+
+@app.get("/test")
+async def test(db: Session = Depends(get_db)):
+    return {"status":"success"}
         
+
 #====================================================================#
 #================= CRUD ================================#
 
