@@ -63,10 +63,8 @@ async def test(db: Session = Depends(get_db)):
 
 # all posts:
 @app.get("/posts", status_code=status.HTTP_200_OK)
-def get_all_posts():
-    cursor.execute("SELECT * FROM posts;")
-    posts = cursor.fetchall()
-    print(posts)
+def get_all_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
     if not posts:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -76,10 +74,8 @@ def get_all_posts():
 
 # post detail by ID:
 @app.get("/posts/{id}", status_code=status.HTTP_200_OK)
-async def get_post_by_id(id: int):
-    cursor.execute("SELECT * FROM posts WHERE id=%s", (id,))
-    post = cursor.fetchone()
-    print(post)
+async def get_post_by_id(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -90,12 +86,14 @@ async def get_post_by_id(id: int):
 
 # create post:
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_post(front_post: Post):
-    cursor.execute("INSERT INTO posts (title, content) VALUES (%s,%s)",
-                  (front_post.title, front_post.content)) 
-    conn.commit()
+async def create_post(front_post: Post, db: Session = Depends(get_db)):
+    print(front_post.model_dump())
+    new_post = models.Post(**front_post.model_dump())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post) 
     print("post created!")
-    return {"created_post": front_post}
+    return {"created_post": new_post}
 
 
 # delete a post:
