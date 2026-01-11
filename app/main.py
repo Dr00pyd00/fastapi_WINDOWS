@@ -7,6 +7,8 @@ from app import models
 from app.database import engine, get_db
 from sqlalchemy.orm import Session
 
+import app.models
+
 # check si les tableaux existent , sinon les crees
 models.Base.metadata.create_all(bind=engine)
 
@@ -51,7 +53,9 @@ async def root():
 
 @app.get("/test")
 async def test(db: Session = Depends(get_db)):
-    return {"status":"success"}
+    posts = db.query(models.Post).all()
+
+    return {"status": posts}
         
 
 #====================================================================#
