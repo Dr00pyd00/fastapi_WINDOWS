@@ -98,28 +98,31 @@ async def create_post(front_post: Post, db: Session = Depends(get_db)):
 
 # delete a post:
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post_by_id(id: int):
-    cursor.execute("DELETE FROM posts WHERE id=%s RETURNING *;", (id,))
-    post_deleted = cursor.fetchone()
-    print(post_deleted)
-    if not post_deleted:
+async def delete_post_by_id(id: int, db: Session = Depends(get_db) ):
+    post_to_delete = db.query(models.Post).filter(models.Post.id == id).first()
+    if not post_to_delete:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with ID:{id} NOT FOUND!"
         )
-    conn.commit()
+    db.delete(post_to_delete)
+    db.commit()
     return
     
 # update a post:
 @app.put("/posts/{id}", status_code=status.HTTP_200_OK)
-async def update_post_by_id(id: int, updated_post_data: Post):
-    cursor.execute("UPDATE posts SET title=%s, content=%s WHERE id=%s RETURNING *;", (updated_post_data.title, updated_post_data.content, id))
-    post_up = cursor.fetchone()
-    if not post_up:
+async def update_post_by_id(id: int, updated_post_data: Post, db: Session = Depends(get_db)):
+    post_to_up = db.query(models.Post).filter(models.Post.id == id).first()
+    if not post_to_up:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with ID:{id} NOT FOUND!"
         )
-    conn.commit()
-    return {"updated_post": post_up}
+    for k,v in updated_post_data.model_dump().items():
+        setattr(post_to_up, k, v)
+    
+    db.commit()
+    db.refresh(post_to_up)
+    
+    return {"updated_post": post_to_up}
  
