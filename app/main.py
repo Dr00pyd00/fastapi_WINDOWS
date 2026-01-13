@@ -5,7 +5,7 @@ import time
 from app import models
 from app.database import engine, get_db
 from sqlalchemy.orm import Session
-from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema
+from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema, UserBaseSchema
 import app.models
 from typing import List
 
@@ -104,8 +104,8 @@ async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Se
         )
     for k,v in updated_post_data.model_dump().items():
         setattr(post_to_up, k, v)
-    
     db.commit()
     db.refresh(post_to_up)
     
     return post_to_up 
+

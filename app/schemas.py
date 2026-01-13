@@ -28,3 +28,4 @@ class PostResponseSchema(PostBaseSchema):
 
     # expliciter mode ORM V2:
     model_config = {"from_attributes":True}
+
