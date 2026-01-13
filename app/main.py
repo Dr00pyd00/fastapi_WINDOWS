@@ -1,4 +1,5 @@
 from fastapi import FastAPI, status, HTTPException, Depends
+from passlib.context import CryptContext
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
@@ -8,6 +9,11 @@ from sqlalchemy.orm import Session
 from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema, UserCreateSchema, UserResponseSchema
 import app.models
 from typing import List
+
+# ATTENTION a la version de passlib sur window...
+# truc password hash
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 # check si les tableaux existent , sinon les crees
 models.Base.metadata.create_all(bind=engine)
@@ -123,7 +129,11 @@ def create_user(user_new_cred: UserCreateSchema, db: Session = Depends(get_db) )
             status_code=status.HTTP_409_CONFLICT,
             detail=f"email already taken!"
         )
-    new_user = models.User(**user_new_cred.model_dump())
+    hashed_pw = pwd_context.hash(user_new_cred.password)
+    user_dict = user_new_cred.model_dump()
+    user_dict["password"] = hashed_pw
+    print(user_dict["password"])
+    new_user = models.User(**user_dict)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
