@@ -17,3 +17,10 @@ class PostCreateSchema(PostBaseSchema):
 
 class PostUpdateSchema(PostBaseSchema):
     pass
+
+
+# for th eresponse of db:
+class PostResponseSchema(BaseModel):
+    title: str
+    content: str
+    published: bool

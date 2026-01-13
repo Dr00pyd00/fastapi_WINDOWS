@@ -5,8 +5,9 @@ import time
 from app import models
 from app.database import engine, get_db
 from sqlalchemy.orm import Session
-from app.schemas import PostCreateSchema, PostUpdateSchema 
+from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema
 import app.models
+from typing import List
 
 # check si les tableaux existent , sinon les crees
 models.Base.metadata.create_all(bind=engine)
@@ -46,7 +47,7 @@ async def root():
 #================= CRUD ================================#
 
 # all posts:
-@app.get("/posts", status_code=status.HTTP_200_OK)
+@app.get("/posts", status_code=status.HTTP_200_OK, response_model=List[PostResponseSchema])
 def get_all_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     if not posts:
@@ -54,10 +55,10 @@ def get_all_posts(db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"no posts in DB!"
         )
-    return {"all_posts": posts}
+    return posts
 
 # post detail by ID:
-@app.get("/posts/{id}", status_code=status.HTTP_200_OK)
+@app.get("/posts/{id}", status_code=status.HTTP_200_OK, response_model=PostResponseSchema)
 async def get_post_by_id(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -65,11 +66,11 @@ async def get_post_by_id(id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with ID:{id} NOT FOUND!"
         )
-    return {"post": post}
+    return post 
 
 
 # create post:
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=PostResponseSchema)
 async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db)):
     print(front_post.model_dump())
     new_post = models.Post(**front_post.model_dump())
@@ -77,8 +78,7 @@ async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db
     db.commit()
     db.refresh(new_post) 
     print("post created!")
-    return {"created_post": new_post}
-
+    return new_post 
 
 # delete a post:
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -94,7 +94,7 @@ async def delete_post_by_id(id: int, db: Session = Depends(get_db) ):
     return
     
 # update a post:
-@app.put("/posts/{id}", status_code=status.HTTP_200_OK)
+@app.put("/posts/{id}", status_code=status.HTTP_200_OK, response_model=PostResponseSchema)
 async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Session = Depends(get_db)):
     post_to_up = db.query(models.Post).filter(models.Post.id == id).first()
     if not post_to_up:
@@ -108,5 +108,4 @@ async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Se
     db.commit()
     db.refresh(post_to_up)
     
-    return {"updated_post": post_to_up}
- 
+    return post_to_up 
