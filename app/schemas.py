@@ -29,3 +29,20 @@ class PostResponseSchema(PostBaseSchema):
     # expliciter mode ORM V2:
     model_config = {"from_attributes":True}
 
+
+
+#================ USERS ==============#
+
+class UserBaseSchema(BaseModel):
+    email: str
+    password: str
+
+class UserCreateSchema(UserBaseSchema):
+    pass
+
+class UserLoginSchema(UserBaseSchema):
+    pass 
+
+class UserResponseSchema(UserBaseSchema):
+    id: int
+    created_at: datetime
