@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 
@@ -34,7 +34,7 @@ class PostResponseSchema(PostBaseSchema):
 #================ USERS ==============#
 
 class UserBaseSchema(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class UserCreateSchema(UserBaseSchema):
