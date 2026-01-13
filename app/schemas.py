@@ -1,7 +1,19 @@
 from pydantic import BaseModel
 
 
-class Post(BaseModel):
+
+
+#====================== POSTS =======================#
+
+class PostBaseSchema(BaseModel):
     title: str
     content: str
     published: bool = True
+
+
+class PostCreateSchema(PostBaseSchema):
+    pass
+
+
+class PostUpdateSchema(PostBaseSchema):
+    pass

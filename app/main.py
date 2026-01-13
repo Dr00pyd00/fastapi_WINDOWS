@@ -5,8 +5,7 @@ import time
 from app import models
 from app.database import engine, get_db
 from sqlalchemy.orm import Session
-from app.schemas import Post as Post_schema
-
+from app.schemas import PostCreateSchema, PostUpdateSchema 
 import app.models
 
 # check si les tableaux existent , sinon les crees
@@ -78,7 +77,7 @@ async def get_post_by_id(id: int, db: Session = Depends(get_db)):
 
 # create post:
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_post(front_post: Post_schema, db: Session = Depends(get_db)):
+async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db)):
     print(front_post.model_dump())
     new_post = models.Post(**front_post.model_dump())
     db.add(new_post)
@@ -103,7 +102,7 @@ async def delete_post_by_id(id: int, db: Session = Depends(get_db) ):
     
 # update a post:
 @app.put("/posts/{id}", status_code=status.HTTP_200_OK)
-async def update_post_by_id(id: int, updated_post_data: Post_schema, db: Session = Depends(get_db)):
+async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Session = Depends(get_db)):
     post_to_up = db.query(models.Post).filter(models.Post.id == id).first()
     if not post_to_up:
         raise HTTPException(
