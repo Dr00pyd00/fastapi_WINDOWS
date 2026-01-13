@@ -1,26 +1,18 @@
 from fastapi import FastAPI, status, HTTPException, Depends
-from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from app import models
 from app.database import engine, get_db
 from sqlalchemy.orm import Session
+from app.schemas import Post as Post_schema
 
 import app.models
 
 # check si les tableaux existent , sinon les crees
 models.Base.metadata.create_all(bind=engine)
 
-#===================================================================#
-#==========  Schema:
-
-class Post(BaseModel):
-    title: str
-    content: str
-   #created_at: ? 
-
-   
+  
 
 # Access to DB:
 while True:
@@ -86,7 +78,7 @@ async def get_post_by_id(id: int, db: Session = Depends(get_db)):
 
 # create post:
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_post(front_post: Post, db: Session = Depends(get_db)):
+async def create_post(front_post: Post_schema, db: Session = Depends(get_db)):
     print(front_post.model_dump())
     new_post = models.Post(**front_post.model_dump())
     db.add(new_post)
@@ -111,7 +103,7 @@ async def delete_post_by_id(id: int, db: Session = Depends(get_db) ):
     
 # update a post:
 @app.put("/posts/{id}", status_code=status.HTTP_200_OK)
-async def update_post_by_id(id: int, updated_post_data: Post, db: Session = Depends(get_db)):
+async def update_post_by_id(id: int, updated_post_data: Post_schema, db: Session = Depends(get_db)):
     post_to_up = db.query(models.Post).filter(models.Post.id == id).first()
     if not post_to_up:
         raise HTTPException(
