@@ -1,5 +1,4 @@
 from fastapi import FastAPI, status, HTTPException, Depends
-from passlib.context import CryptContext
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
@@ -9,16 +8,13 @@ from sqlalchemy.orm import Session
 from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema, UserCreateSchema, UserResponseSchema
 import app.models
 from typing import List
-
-# ATTENTION a la version de passlib sur window...
-# truc password hash
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.utils import hash_pw, check_pw
 
 
-# check si les tableaux existent , sinon les crees
+  # check si les tableaux existent , sinon les crees
 models.Base.metadata.create_all(bind=engine)
 
-  
+
 
 # Access to DB:
 while True:
@@ -121,6 +117,7 @@ async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Se
 #=================================================#
 #================ USERS CRUD =====================#
 
+# create user
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserResponseSchema)
 def create_user(user_new_cred: UserCreateSchema, db: Session = Depends(get_db) ):
     existing_user = db.query(models.User).filter(models.User.email == user_new_cred.email).first()
@@ -129,7 +126,7 @@ def create_user(user_new_cred: UserCreateSchema, db: Session = Depends(get_db) )
             status_code=status.HTTP_409_CONFLICT,
             detail=f"email already taken!"
         )
-    hashed_pw = pwd_context.hash(user_new_cred.password)
+    hashed_pw = hash_pw(user_new_cred.password)
     user_dict = user_new_cred.model_dump()
     user_dict["password"] = hashed_pw
     print(user_dict["password"])
@@ -138,3 +135,16 @@ def create_user(user_new_cred: UserCreateSchema, db: Session = Depends(get_db) )
     db.commit()
     db.refresh(new_user)
     return new_user
+
+# retrieve user by id:
+@app.get("/users/{id}", status_code=status.HTTP_200_OK, response_model=UserResponseSchema)
+async def find_user_by_id(id:int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"user with id:{id} NOT FOUND!",
+        )
+
+    return user
+
