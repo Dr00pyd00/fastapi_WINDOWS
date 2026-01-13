@@ -40,14 +40,7 @@ app = FastAPI()
 async def root():
     return {"message":"Welcome to my API!"}
 
-# test de get_db
 
-@app.get("/test")
-async def test(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-
-    return {"status": posts}
-        
 
 #====================================================================#
 #================= CRUD ================================#
