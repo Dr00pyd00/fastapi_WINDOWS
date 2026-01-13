@@ -5,7 +5,7 @@ import time
 from app import models
 from app.database import engine, get_db
 from sqlalchemy.orm import Session
-from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema, UserBaseSchema
+from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema, UserCreateSchema
 import app.models
 from typing import List
 
@@ -116,7 +116,13 @@ async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Se
 #================ USERS CRUD =====================#
 
 @app.post("/users", status_code=status.HTTP_201_CREATED)
-def create_user(user_new_cred: UserBaseSchema, db: Session = Depends(get_db) ):
+def create_user(user_new_cred: UserCreateSchema, db: Session = Depends(get_db) ):
+    existing_user = db.query(models.User).filter(models.User.email == user_new_cred.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"email already taken!"
+        )
     new_user = models.User(**user_new_cred.model_dump())
     db.add(new_user)
     db.commit()

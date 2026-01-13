@@ -35,14 +35,15 @@ class PostResponseSchema(PostBaseSchema):
 
 class UserBaseSchema(BaseModel):
     email: EmailStr
-    password: str
 
 class UserCreateSchema(UserBaseSchema):
-    pass
+    password: str
 
 class UserLoginSchema(UserBaseSchema):
-    pass 
+    password: str 
 
 class UserResponseSchema(UserBaseSchema):
     id: int
     created_at: datetime
+
+    
