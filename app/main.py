@@ -109,3 +109,16 @@ async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Se
     
     return post_to_up 
 
+
+
+
+#=================================================#
+#================ USERS CRUD =====================#
+
+@app.post("/users", status_code=status.HTTP_201_CREATED)
+def create_user(user_new_cred: UserBaseSchema, db: Session = Depends(get_db) ):
+    new_user = models.User(**user_new_cred.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
