@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, status, HTTPException, Response
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.schemas import UserLoginSchema
-from app import models
+from app import models, oauth2
 from app.utils import check_pw
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(
     tags=["authentication"]
@@ -16,9 +17,9 @@ WRONG_CRED = HTTPException(
 )
 
 @router.post("/login")
-async def login(user_cred: UserLoginSchema  , db:Session = Depends(get_db)):
+async def login(user_cred: OAuth2PasswordRequestForm = Depends() , db:Session = Depends(get_db)):
 
-    user = db.query(models.User).filter(models.User.email == user_cred.email).first()
+    user = db.query(models.User).filter(models.User.email == user_cred.username).first()
     if not user:
         raise WRONG_CRED
     
@@ -26,5 +27,7 @@ async def login(user_cred: UserLoginSchema  , db:Session = Depends(get_db)):
         raise WRONG_CRED
     
     # create and return token
+    token = oauth2.create_access_token({"user_id": user.id})
 
-    return {"token":"example token!"} 
+    return {"access_token":token,
+            "token_type":"bearer"} 
