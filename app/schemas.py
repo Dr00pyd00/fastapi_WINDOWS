@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-
+from typing import Optional
 
 
 
@@ -49,3 +49,11 @@ class UserResponseSchema(UserBaseSchema):
     model_config = {"from_attributes":True}
 
     
+#========== TOKEN ===================#
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: Optional[int] = None
