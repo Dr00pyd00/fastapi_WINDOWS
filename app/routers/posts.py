@@ -2,9 +2,10 @@
 from app.database import get_db
 from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
-from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema
+from app.schemas import PostCreateSchema, PostUpdateSchema, PostResponseSchema, UserResponseSchema
 from typing import List
 from app import models
+from app.oauth2 import get_current_user
 
 # router:
 router = APIRouter(
@@ -40,8 +41,8 @@ async def get_post_by_id(id: int, db: Session = Depends(get_db)):
 
 # create post:
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponseSchema)
-async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db)):
-    print(front_post.model_dump())
+async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db), current_user:UserResponseSchema = Depends(get_current_user)):
+    print(f"le user  : {current_user}")
     new_post = models.Post(**front_post.model_dump())
     db.add(new_post)
     db.commit()
@@ -51,7 +52,7 @@ async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db
 
 # delete a post:
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post_by_id(id: int, db: Session = Depends(get_db) ):
+async def delete_post_by_id(id: int, db: Session = Depends(get_db), current_user:UserResponseSchema = Depends(get_current_user)):
     post_to_delete = db.query(models.Post).filter(models.Post.id == id).first()
     if not post_to_delete:
         raise HTTPException(
@@ -64,7 +65,7 @@ async def delete_post_by_id(id: int, db: Session = Depends(get_db) ):
     
 # update a post:
 @router.put("/{id}", status_code=status.HTTP_200_OK, response_model=PostResponseSchema)
-async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Session = Depends(get_db)):
+async def update_post_by_id(id: int, updated_post_data: PostUpdateSchema, db: Session = Depends(get_db), current_user:UserResponseSchema = Depends(get_current_user)):
     post_to_up = db.query(models.Post).filter(models.Post.id == id).first()
     if not post_to_up:
         raise HTTPException(
