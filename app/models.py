@@ -1,6 +1,6 @@
 from app.database import Base
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
@@ -19,6 +19,10 @@ class Post(Base):
                         nullable=False, 
                         server_default=text("NOW()")
                         )
+    owner_id = Column(Integer, 
+                     ForeignKey("users.id", ondelete="CASCADE"),
+                     nullable=False,
+                     )
 
 #================== USER ==========================#
 

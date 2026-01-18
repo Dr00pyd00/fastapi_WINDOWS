@@ -25,6 +25,7 @@ class PostUpdateSchema(PostBaseSchema):
 class PostResponseSchema(PostBaseSchema):
     id: int
     created_at: datetime
+    owner_id: int
 
     # expliciter mode ORM V2:
     model_config = {"from_attributes":True}

@@ -43,7 +43,7 @@ async def get_post_by_id(id: int, db: Session = Depends(get_db)):
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponseSchema)
 async def create_post(front_post: PostCreateSchema, db: Session = Depends(get_db), current_user:UserResponseSchema = Depends(get_current_user)):
     print(f"le user  : {current_user}")
-    new_post = models.Post(**front_post.model_dump())
+    new_post = models.Post(owner_id = current_user.id, **front_post.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post) 
